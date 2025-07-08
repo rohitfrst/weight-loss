@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,34 +17,41 @@
       align-items: center;
       height: 100vh;
     }
+
     .container {
       background: white;
       padding: 2rem;
       border-radius: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       width: 90%;
       max-width: 600px;
       text-align: center;
     }
+
     h2 {
       margin-bottom: 1rem;
     }
-    input, button {
+
+    input,
+    button {
       padding: 0.7rem;
       font-size: 1rem;
       margin: 0.5rem;
       border-radius: 0.5rem;
       border: 1px solid #ccc;
     }
+
     button {
       background-color: #28b463;
       color: white;
       border: none;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #239b56;
     }
+
     .motivation {
       margin-top: 1rem;
       font-weight: bold;
@@ -51,6 +59,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h2>🏁 Weekly Weight Tracker</h2>
@@ -98,13 +107,77 @@
         }
       }
     });
+ 
 
     const motivationalQuotes = [
-      "Every step counts. Keep going!",
-      "You're stronger than you think!",
-      "Progress, not perfection.",
-      "Consistency beats motivation.",
-      "Small changes make big differences."
+      "Your struggle is real, and your strength is real.",
+      "You are whole",
+      "Keep walking—one breath, one step at a time.",
+      "Healing isn’t linear, but every movement forward counts.",
+      "Celebrate everyday.",
+      "Keep going. You're creating a future that your past self would be proud of.",
+      "It's okay to rest, but don't quit. You’ve come too far.",
+      "You are figuring it out as you move forward",
+      "Gentle progress is still progress. Keep moving.",
+      "Believe in the power of small wins. They become big changes.",
+      "You matter and Your journey matters.",
+      "Strength isn't loud. Sometimes it's quiet persistence.",
+      "After every sunset, there is a sunrise. Carry on!",
+      "You are brave. Let that be your strength.",
+      "Every scar tells a story. Wear them with pride.",
+      "You’re allowed to take up space and move at your own pace.",
+      "Sometimes the kindest thing you can do is keep going.",
+      "You are more resilient than you think—keep showing up.",
+
+      "You are perfect.Be proud of yourself.",
+      "You are doing better than you think.",
+      "Rest is not quitting—it’s part of the process.",
+      "Your journey is uniquely yours—no comparison needed.",
+      "One step at a time is all you need to focus on.",
+
+      "You are growing.",
+      "Peace often starts with a pause.",
+      "Everything doesn’t need to be fixed today.",
+      "Just showing up today is also enough.",
+      "You don’t have to carry everything at once.",
+      "Keep moving, even if it’s just in thought.",
+      "You can be tired and still be eventfull.",
+      "You’re allowed to change directions.",
+      "Let the next breath be your next step.",
+      "You're a work in progress. Love yourself.",
+      "Don’t underestimate quiet resilience.",
+      "Not every day will feel good—but every day counts.",
+      "Let your heart lead the way, softly.",
+      "The next moment is always a chance to begin again.",
+      "You’re not behind. You’re on your path.",
+      "Some seasons are for blooming, others are for planting.",
+      "Every small effort matters.",
+      "Your peace is your power.",
+      "You’re doing well enough.",
+      "Keep showing up with care for yourself.",
+      "You are healing and moving forward.",
+      "Trust yourself—you’ve gotten this far.",
+      "Give yourself credit for how far you’ve come.",
+      "Permission granted to feel everything and keep going.",
+      "Baby steps is good progress.",
+      "You are strong",
+      "You’re outgrowing past versions of yourself.",
+      "Let today be about gentle movement, not pressured.",
+      "Progress isn’t always visible, but it’s still real.",
+      "Breathe. Then keep moving forward with kindness.",
+      "Honor where you are while reaching for where you’re going.",
+      "Let your next step be guided by patience, not pressure.",
+      "The effort you make today plants hope for tomorrow.",
+      "Some days you’re the flame, other days the flicker—both still give light.",
+      "Even the moon goes through phases, and it never rushes to be full.",
+      "You are not lost—you’re just unfolding in a direction you don’t yet understand.",
+      "Like rivers, you don’t need to rush—your flow will carve the path in time.",
+      "Some steps feel invisible, like roots growing underground—still vital, still real.",
+      "Growth often whispers before it ever shouts.",
+      "You’re not falling behind—you’re gathering the strength to leap in your own time.",
+      "Your heart is beating forward.",
+      "Storms don’t cover the sky—they just teach you how to see it differently.",
+      "You have bloomed"
     ];
 
     async function loadData() {
@@ -121,6 +194,8 @@
           });
           chart.update();
         }
+           document.getElementById('motivationText').innerText =
+        motivationalQuotes[data.length];
       } catch (e) {
         console.error('Error loading data:', e);
       }
@@ -137,8 +212,7 @@
       chart.update();
       input.value = '';
 
-      document.getElementById('motivationText').innerText =
-        motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+   
 
       try {
         await fetch(SHEETDB_URL, {
@@ -154,4 +228,5 @@
     loadData();
   </script>
 </body>
+
 </html>
