@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Weight Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #d1f2eb, #f9e79f);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    input, button {
+      padding: 0.7rem;
+      font-size: 1rem;
+      margin: 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #28b463;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #239b56;
+    }
+    .motivation {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #1f618d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🏁 Weekly Weight Tracker</h2>
+    <input type="number" id="weightInput" placeholder="Enter your weight (kg)" />
+    <button onclick="addWeight()">Add Weight</button>
+    <canvas id="weightChart" width="400" height="200"></canvas>
+    <div class="motivation" id="motivationText">Let's begin your journey!</div>
+  </div>
+
+  <script>
+    const SHEETDB_URL = 'https://sheetdb.io/api/v1/4c3qzaim00shy';
+    let weights = [];
+    let weeks = [];
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: weeks,
+        datasets: [{
+          label: 'Your Weight Over Time (kg)',
+          data: weights,
+          fill: false,
+          borderColor: '#2e86c1',
+          backgroundColor: '#2e86c1',
+          tension: 0.2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+
+    const motivationalQuotes = [
+      "Every step counts. Keep going!",
+      "You're stronger than you think!",
+      "Progress, not perfection.",
+      "Consistency beats motivation.",
+      "Small changes make big differences."
+    ];
+
+    async function loadData() {
+      try {
+        const res = await fetch(SHEETDB_URL);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          data.forEach((row, idx) => {
+            const weight = parseFloat(row.weight);
+            if (!isNaN(weight)) {
+              weeks.push('Week ' + (idx + 1));
+              weights.push(weight);
+            }
+          });
+          chart.update();
+        }
+      } catch (e) {
+        console.error('Error loading data:', e);
+      }
+    }
+
+    async function addWeight() {
+      const input = document.getElementById('weightInput');
+      const weight = parseFloat(input.value);
+      if (isNaN(weight)) return;
+
+      const week = 'Week ' + (weeks.length + 1);
+      weeks.push(week);
+      weights.push(weight);
+      chart.update();
+      input.value = '';
+
+      document.getElementById('motivationText').innerText =
+        motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+
+      try {
+        await fetch(SHEETDB_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: { week, weight } })
+        });
+      } catch (e) {
+        console.error('Error saving data:', e);
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
