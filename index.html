@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Weekly Weight Tracker</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -57,59 +57,96 @@
       font-weight: bold;
       color: #1f618d;
     }
+
+    #tracker {
+      display: none;
+    }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <h2>🏁 Weekly Weight Tracker</h2>
+
+  <div id="g_id_signin"></div>
+
+
+
+  <div class="container" id="tracker">
+    <h2>🏁 Tracker</h2>
     <input type="number" id="weightInput" placeholder="Enter your weight (kg)" />
-    <button onclick="addWeight()">Add Weight</button>
+    <button onclick="addWeight()">Add Weight</button>   <button id="logoutBtn" onclick="logout()" style="display: none;  background-color: #e74c3c; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+    Logout
+  </button>
+
+   
     <canvas id="weightChart" width="400" height="200"></canvas>
     <div class="motivation" id="motivationText">Let's begin your journey!</div>
   </div>
 
   <script>
+    const CLIENT_ID = '302104521768-cp7jklaq09fb4bm00vfqt3ro6ibmgga9.apps.googleusercontent.com';
     const SHEETDB_URL = 'https://sheetdb.io/api/v1/4c3qzaim00shy';
+
+    let currentEmail = null;
     let weights = [];
     let weeks = [];
-    const ctx = document.getElementById('weightChart').getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: weeks,
-        datasets: [{
-          label: 'Your Weight Over Time (kg)',
-          data: weights,
-          fill: false,
-          borderColor: '#2e86c1',
-          backgroundColor: '#2e86c1',
-          tension: 0.2,
-          pointRadius: 5,
-          pointHoverRadius: 7
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top'
-          }
+
+    let chart;
+    const ctx = () => document.getElementById('weightChart').getContext('2d');
+
+    window.onload = () => {
+      google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleCredentialResponse,
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_signin'),
+        { theme: 'filled_blue', size: 'large', text: 'signin_with' }
+      );
+
+      chart = new Chart(ctx(), {
+        type: 'line',
+        data: {
+          labels: weeks,
+          datasets: [{
+            label: 'Your Weight Over Time (kg)',
+            data: weights,
+            fill: false,
+            borderColor: '#2e86c1',
+            backgroundColor: '#2e86c1',
+            tension: 0.2,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: false,
-            ticks: {
-              stepSize: 1
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: { stepSize: 1 }
             }
           }
         }
-      }
-    });
- 
+      });
+    };
 
-    const motivationalQuotes = [
+    function handleCredentialResponse(response) {
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      currentEmail = payload.email;
+
+      document.getElementById('g_id_signin').style.display = 'none';
+document.getElementById('tracker').style.display = 'block';
+document.getElementById('logoutBtn').style.display = 'inline-block';
+      loadData();
+    }
+
+       const motivationalQuotes = [
       "Your struggle is real, and your strength is real.",
       "You are whole",
       "Keep walking—one breath, one step at a time.",
@@ -181,21 +218,27 @@
     ];
 
     async function loadData() {
+      weeks.length = 0;
+      weights.length = 0;
       try {
         const res = await fetch(SHEETDB_URL);
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          data.forEach((row, idx) => {
-            const weight = parseFloat(row.weight);
-            if (!isNaN(weight)) {
-              weeks.push('Week ' + (idx + 1));
-              weights.push(weight);
+        const rows = await res.json();
+
+        rows.forEach((row) => {
+          const parts = String(row.weight).split(',');
+          if (parts.length === 2 && parts[0] === currentEmail) {
+            const wt = parseFloat(parts[1]);
+            if (!isNaN(wt)) {
+              weeks.push('Week ' + (weeks.length + 1));
+              weights.push(wt);
             }
-          });
-          chart.update();
-        }
-           document.getElementById('motivationText').innerText =
-        motivationalQuotes[data.length];
+          }
+        });
+
+        chart.update();
+        document.getElementById('motivationText').innerText =
+          motivationalQuotes[Math.min(weeks.length, motivationalQuotes.length - 1)];
+
       } catch (e) {
         console.error('Error loading data:', e);
       }
@@ -203,30 +246,40 @@
 
     async function addWeight() {
       const input = document.getElementById('weightInput');
-      const weight = parseFloat(input.value);
-      if (isNaN(weight)) return;
+      const wt = parseFloat(input.value);
+      if (isNaN(wt) || !currentEmail) return;
 
-      const week = 'Week ' + (weeks.length + 1);
-      weeks.push(week);
-      weights.push(weight);
+      weeks.push('Week ' + (weeks.length + 1));
+      weights.push(wt);
       chart.update();
       input.value = '';
 
-   
-
+      const combined = `${currentEmail},${wt}`;
       try {
         await fetch(SHEETDB_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data: { week, weight } })
+          body: JSON.stringify({ data: { weight: combined } })
         });
       } catch (e) {
         console.error('Error saving data:', e);
       }
     }
 
-    loadData();
+    function logout() {
+  google.accounts.id.disableAutoSelect(); // prevent auto-login
+  currentEmail = null;
+
+  document.getElementById('tracker').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('g_id_signin').style.display = 'block';
+
+  // Optional: clear chart data
+  weeks.length = 0;
+  weights.length = 0;
+  chart.update();
+}
+
   </script>
 </body>
-
 </html>
